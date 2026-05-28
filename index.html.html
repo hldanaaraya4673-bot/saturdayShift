@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saturday Shift - Saturday Work Rotation Manager</title>
+  <meta name="description" content="A premium and fair Saturday shift rotation planner with live employee lists, vacation exclusions, manual overrides, and dynamic analytics.">
+  
+  <!-- Modern Typography from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Dynamic Animated Background Canvas/Glow -->
+  <div class="bg-glow-container" aria-hidden="true">
+    <div class="bg-glow glow-1"></div>
+    <div class="bg-glow glow-2"></div>
+  </div>
+
+  <div class="app-container">
+    
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="header-logo">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>Saturday Shift</h1>
+          <p>Saturday Work Rotation Manager</p>
+        </div>
+      </div>
+      
+      <!-- Live Status / Hero Widget -->
+      <div class="header-status-widget" id="header-status-widget">
+        <div class="status-indicator"></div>
+        <div class="status-info">
+          <span class="status-label">Next Saturday Shift</span>
+          <span class="status-value" id="next-shift-text">Loading...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN APP GRID -->
+    <main class="app-grid">
+      
+      <!-- SIDEBAR: Employee & Exclusion Settings -->
+      <aside class="app-sidebar">
+        
+        <!-- Section: Employees -->
+        <section class="card sidebar-card" id="employees-section">
+          <div class="card-header">
+            <h2>Employees</h2>
+            <span class="badge" id="employee-count-badge">5</span>
+          </div>
+          
+          <p class="section-desc">Drag or use arrows to change rotation order. Toggle checkmark to include/exclude.</p>
+          
+          <div class="employee-list" id="employee-list-container" role="list">
+            <!-- Dynamic Employees list will render here -->
+          </div>
+          
+          <form class="add-employee-form" id="add-employee-form" onsubmit="return false;">
+            <input type="text" id="new-employee-name" placeholder="New employee name..." maxlength="20" required autocomplete="off" aria-label="New employee name">
+            <button type="submit" id="add-employee-btn" class="btn btn-primary btn-icon" aria-label="Add Employee">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+          </form>
+        </section>
+
+        <!-- Section: Leave & Exclusions -->
+        <section class="card sidebar-card" id="exclusions-section">
+          <div class="card-header">
+            <h2>Vacation Mode</h2>
+          </div>
+          <p class="section-desc">Add dates when an employee is unavailable. The rotation automatically bypasses them fairly.</p>
+          
+          <form class="add-exclusion-form" id="add-exclusion-form" onsubmit="return false;">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="exclusion-employee">Employee</label>
+                <select id="exclusion-employee" required>
+                  <!-- Dynamically populated -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="exclusion-date">Saturday</label>
+                <input type="date" id="exclusion-date" required>
+              </div>
+            </div>
+            <button type="submit" id="add-exclusion-btn" class="btn btn-secondary btn-full">
+              Add Vacation Date
+            </button>
+          </form>
+          
+          <div class="exclusions-list-container">
+            <h3>Active Exclusions</h3>
+            <div class="exclusions-list" id="exclusions-list-container">
+              <!-- Dynamically populated exclusions -->
+              <p class="empty-text">No active exclusions.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Shift Swaps -->
+        <section class="card sidebar-card" id="swaps-section">
+          <div class="card-header">
+            <h2>Shift Exchanges</h2>
+          </div>
+          <p class="section-desc">Swaps between two Saturdays. Deleting an exchange restores the original rotations.</p>
+          
+          <div class="swaps-list-container">
+            <div class="exclusions-list" id="swaps-list-container">
+              <!-- Dynamically populated swaps -->
+              <p class="empty-text">No active exchanges.</p>
+            </div>
+          </div>
+        </section>
+
+      </aside>
+
+      <!-- MAIN CONTENT: Controls, Tabs, Schedules -->
+      <section class="app-main-content">
+        
+        <!-- Controls Bar -->
+        <section class="card controls-card" id="controls-section">
+          <div class="controls-grid">
+            
+            <div class="control-group">
+              <label for="start-date-input">Start Saturday</label>
+              <input type="date" id="start-date-input" value="">
+            </div>
+            
+            <div class="control-group">
+              <label for="duration-select">Schedule Length</label>
+              <select id="duration-select">
+                <option value="5">5 Weeks (Default Cycle)</option>
+                <option value="10">10 Weeks</option>
+                <option value="26">6 Months (26 Weeks)</option>
+                <option value="52" selected>1 Year (52 Weeks)</option>
+              </select>
+            </div>
+            
+            <div class="control-group">
+              <label for="shift-size-input">People per Saturday</label>
+              <input type="number" id="shift-size-input" min="1" max="5" value="2">
+            </div>
+
+            <div class="controls-actions">
+              <button class="btn btn-outline" id="btn-export-csv" title="Export schedule to CSV">
+                <svg class="btn-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Export CSV
+              </button>
+              
+              <button class="btn btn-outline" id="btn-print" title="Print physical schedule">
+                <svg class="btn-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                  <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+                Print
+              </button>
+
+              <button class="btn btn-danger-outline" id="btn-reset" title="Reset all changes to original default schedule">
+                Reset App
+              </button>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Tabs Navigation -->
+        <nav class="tabs-nav" aria-label="Schedule views">
+          <div class="tabs-buttons">
+            <button class="tab-btn active" id="tab-timeline" data-tab="timeline">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              Timeline View
+            </button>
+            <button class="tab-btn" id="tab-calendar" data-tab="calendar">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+                <line x1="3" y1="14" x2="21" y2="14"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+                <line x1="7" y1="10" x2="7" y2="22"></line>
+                <line x1="12" y1="10" x2="12" y2="22"></line>
+                <line x1="17" y1="10" x2="17" y2="22"></line>
+              </svg>
+              Calendar View
+            </button>
+            <button class="tab-btn" id="tab-analytics" data-tab="analytics">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+              Fairness Analytics
+            </button>
+          </div>
+          <div class="search-filter-wrapper">
+            <input type="text" id="employee-filter-input" placeholder="Filter by employee name..." aria-label="Filter schedule by employee name">
+          </div>
+        </nav>
+
+        <!-- Tab Contents -->
+        <div class="tab-content-container">
+          
+          <!-- TIMELINE TAB -->
+          <div class="tab-panel active" id="panel-timeline" role="tabpanel">
+            <div class="timeline-summary-bar">
+              <span id="timeline-count-text">Showing 52 Saturdays</span>
+              
+            </div>
+            <div class="timeline-grid" id="timeline-grid-container">
+              <!-- Dynamic Schedule cards will render here -->
+            </div>
+          </div>
+
+          <!-- CALENDAR TAB -->
+          <div class="tab-panel" id="panel-calendar" role="tabpanel">
+            <div class="calendar-header-nav">
+              <button class="btn btn-outline btn-circle" id="cal-prev-month" aria-label="Previous Month">&larr;</button>
+              <h3 id="calendar-current-month-year">May 2026</h3>
+              <button class="btn btn-outline btn-circle" id="cal-next-month" aria-label="Next Month">&rarr;</button>
+            </div>
+            <div class="calendar-grid">
+              <div class="calendar-day-header">Sun</div>
+              <div class="calendar-day-header">Mon</div>
+              <div class="calendar-day-header">Tue</div>
+              <div class="calendar-day-header">Wed</div>
+              <div class="calendar-day-header">Thu</div>
+              <div class="calendar-day-header">Fri</div>
+              <div class="calendar-day-header">Sat</div>
+              <div class="calendar-days-container" id="calendar-days-container">
+                <!-- Dynamically populated dates -->
+              </div>
+            </div>
+            <div class="calendar-legend">
+              <span class="legend-item"><span class="legend-dot active-shift"></span>Saturday Work Shift</span>
+              <span class="legend-item"><span class="legend-dot overridden-shift"></span>Override / Edited Shift</span>
+            </div>
+          </div>
+
+          <!-- ANALYTICS TAB -->
+          <div class="tab-panel" id="panel-analytics" role="tabpanel">
+            <div class="analytics-layout">
+              
+              <div class="analytics-metrics">
+                <div class="metric-card">
+                  <div class="metric-val" id="metric-total-shifts">-</div>
+                  <div class="metric-lbl">Total Scheduled Shifts</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-val" id="metric-fairness-score">-</div>
+                  <div class="metric-lbl" title="Coefficient of variation of shift assignments. Lower is more balanced.">Fairness Score (Gini Coefficient)</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-val" id="metric-avg-spacing">-</div>
+                  <div class="metric-lbl">Avg. Rest Weeks Between Shifts</div>
+                </div>
+              </div>
+
+              <div class="chart-card">
+                <h3>Shift Distribution Per Employee</h3>
+                <p class="section-desc">Shows the total number of shifts assigned to each employee over the scheduled duration.</p>
+                <div class="chart-container" id="chart-container">
+                  <!-- Dynamically generated SVG Chart will go here -->
+                </div>
+              </div>
+
+              <div class="card table-card">
+                <h3>Work Distribution Details</h3>
+                <table class="analytics-table" id="analytics-table">
+                  <thead>
+                    <tr>
+                      <th>Employee</th>
+                      <th>Shifts Count</th>
+                      <th>Percentage</th>
+                      <th>First Shift Date</th>
+                      <th>Next Shift Date</th>
+                    </tr>
+                  </thead>
+                  <tbody id="analytics-table-body">
+                    <!-- Dynamic details -->
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="app-footer">
+      <p>&copy; 2026 Saturday Shift Planner &bull; Created with Premium Aesthetics</p>
+      <button class="footer-help-btn" id="btn-show-help">How it works</button>
+    </footer>
+
+  </div>
+
+  <!-- DIALOG: MANAGE / OVERRIDE WEEK SHIFT -->
+  <dialog class="modal-dialog" id="override-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3>Override Shift</h3>
+        <button class="btn-close-dialog" id="btn-close-override" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="dialog-body">
+        <p class="dialog-desc">You are modifying the shift for Saturday, <strong id="override-dialog-date">Date</strong> (Week <span id="override-dialog-week-num">X</span>).</p>
+        
+        <form id="override-form" onsubmit="return false;">
+          <input type="hidden" id="override-week-index">
+          
+          <div id="override-selectors-container">
+            <!-- Dynamically populated select dropdowns based on shift size -->
+          </div>
+
+          <div class="dialog-info-box">
+            <p><strong>Note:</strong> Overriding this shift manually locks the selected employees for this specific Saturday. Future Saturdays continue in the rotation from where this week left off.</p>
+          </div>
+
+          <div class="dialog-actions">
+            <button type="button" class="btn btn-outline" id="btn-clear-override">Remove Override</button>
+            <button type="submit" class="btn btn-primary" id="btn-save-override">Save Override</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- DIALOG: EXCHANGE/SWAP SHIFT -->
+  <dialog class="modal-dialog" id="swap-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3>Exchange Shifts</h3>
+        <button class="btn-close-dialog" id="btn-close-swap" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="dialog-body">
+        <p class="dialog-desc">Exchange shifts for Saturday, <strong id="swap-dialog-source-date">Date</strong> (Week <span id="swap-dialog-source-week">X</span>).</p>
+        
+        <form id="swap-form" onsubmit="return false;">
+          <input type="hidden" id="swap-source-date">
+          
+          <div class="form-group" style="margin-bottom: var(--spacing-md)">
+            <label for="swap-source-employee">Employee swapping out</label>
+            <select id="swap-source-employee" required>
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <div class="form-row" style="margin-bottom: var(--spacing-md)">
+            <div class="form-group">
+              <label for="swap-target-date">Target Saturday</label>
+              <select id="swap-target-date" required>
+                <!-- Populated dynamically with future/other Saturdays -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="swap-target-employee">Employee swapping in</label>
+              <select id="swap-target-employee" required>
+                <!-- Populated dynamically based on target Saturday -->
+              </select>
+            </div>
+          </div>
+
+          <div class="dialog-info-box">
+            <p><strong>Note:</strong> Swapping shifts exchanges the selected employees for their respective weeks. The rest of the rotation is preserved.</p>
+          </div>
+
+          <div class="dialog-actions">
+            <button type="button" class="btn btn-outline" id="btn-cancel-swap">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="btn-save-swap">Exchange Shifts</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- DIALOG: HELP & DOCUMENTATION -->
+  <dialog class="modal-dialog" id="help-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3>How Saturday Shift Works</h3>
+        <button class="btn-close-dialog" id="btn-close-help" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="dialog-body">
+        <h4>The 5-Week Rotation Cycle</h4>
+        <p>Saturday Shift uses a modern round-robin pairing algorithm designed to rotate shifts perfectly. With 5 employees, the sequence of assignments matches the user-provided rotation precisely:</p>
+        <ul>
+          <li><strong>Week 1:</strong> Kuku & Dagi</li>
+          <li><strong>Week 2:</strong> Nesti & Tame</li>
+          <li><strong>Week 3:</strong> Mel & Kuku</li>
+          <li><strong>Week 4:</strong> Dagi & Nesti</li>
+          <li><strong>Week 5:</strong> Tame & Mel</li>
+          <li><em>... then repeats starting with Week 6 (Kuku & Dagi).</em></li>
+        </ul>
+        
+        <h4>Dynamic Features</h4>
+        <p>Unlike a static chart, Saturday Shift is highly interactive:</p>
+        <ul>
+          <li><strong>Employee Ordering:</strong> Change the sequence of employee names. The rotation immediately recalculates with the new sequence.</li>
+          <li><strong>Vacation Mode:</strong> Exclude an employee for specific dates. The app skips them and assigns the next person in line, making sure everyone still gets a fair number of turns over the year.</li>
+          <li><strong>Overrides:</strong> Lock specific people into specific Saturdays without breaking the overall pattern for other weeks.</li>
+          <li><strong>Shift Exchanges:</strong> Swap shifts between two Saturdays (e.g. if Kuku swaps with Nesti, Nesti works this week and Kuku works next week).</li>
+          <li><strong>Export:</strong> Download the complete schedule in CSV format for Excel, Google Sheets, or calendars.</li>
+        </ul>
+        
+        <button class="btn btn-primary btn-full" id="btn-close-help-ok">Got it!</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
